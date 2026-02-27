@@ -1,0 +1,141 @@
+# HTTP Deep Understanding
+
+## Objective
+To understand HTTP method behavior, idempotency, and status code classification through direct request execution and observation.
+
+---
+
+## Environment
+Tool: Postman  
+Public APIs used:
+- https://httpbin.org
+- https://reqres.in (limited due to access restriction)
+
+---
+
+## 1. HTTP Methods Analysis
+
+### GET
+
+Example:
+GET https://httpbin.org/get?name=ais&role=qa
+
+Observation:
+- Status code: 200 OK
+- Query parameters were returned under the `args` field.
+- No request body required.
+- Repeated execution produced identical responses.
+
+Conclusion:
+GET is idempotent.  
+It retrieves data without modifying server state.
+
+---
+
+### POST
+
+Example:
+POST https://httpbin.org/post
+
+Body:
+{
+  "name": "ais",
+  "role": "qa"
+}
+
+Observation:
+- Status code: 200 OK (httpbin echoes request)
+- Request payload returned under `json` field.
+- Repeated requests are treated as separate executions.
+
+Conclusion:
+POST is non-idempotent.  
+Each execution represents a new action.
+
+---
+
+### PUT
+
+Example:
+PUT https://httpbin.org/put
+
+Body:
+{
+  "name": "ais"
+}
+
+Observation:
+- Status code: 200 OK
+- Payload returned correctly.
+- Repeated execution with same body resulted in identical output.
+
+Conclusion:
+PUT is idempotent.  
+Sending the same request multiple times results in the same final state.
+
+---
+
+### DELETE
+
+Example:
+DELETE https://httpbin.org/delete
+
+Observation:
+- Status code: 200 OK
+- No persistent data change (due to mock API behavior).
+- Conceptually idempotent.
+
+Conclusion:
+DELETE is idempotent because repeated deletion results in the same final state (resource remains absent).
+
+---
+
+## 2. Status Code Analysis
+
+### 2xx — Success
+- 200 OK → Successful request.
+- 201 Created → Resource successfully created.
+
+Meaning:
+Server successfully processed the request.
+
+---
+
+### 4xx — Client Error
+- 400 Bad Request → Invalid input or malformed request.
+- 404 Not Found → Resource does not exist.
+
+Meaning:
+The client sent an invalid or incorrect request.
+
+---
+
+### 5xx — Server Error
+- 500 Internal Server Error → Unhandled exception or server failure.
+
+Meaning:
+Server failed to process a valid request.
+
+---
+
+## 3. Idempotency and Risk Perspective
+
+Idempotent methods (GET, PUT, DELETE):
+- Safe for retries.
+- Do not multiply effects when repeated.
+
+Non-idempotent methods (POST):
+- Can create duplicate transactions.
+- Risky in payment or order systems if not properly handled.
+
+QA Relevance:
+Understanding idempotency is critical when testing financial transactions, order creation, or any operation where repeated requests could cause data inconsistency.
+
+---
+
+## Key Takeaways
+
+- HTTP method selection directly impacts system behavior.
+- Status codes are not decorative; they indicate system correctness.
+- Idempotency has real production impact, especially in transactional systems.
+- Backend validation must be tested independently from UI.
