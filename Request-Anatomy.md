@@ -35,16 +35,42 @@ Query parameters are typically used for filtering or searching resources.
 
 ---
 
-## Header Analysis
+## Behavior When Resource Is Not Found
 
-Tested POST request with and without Content-Type header.
+Test Case 1:
+GET /posts/9999
 
 Observation:
-- With correct header → processed normally.
-- (Document actual behavior you observe.)
+- Returned status 404 Not Found.
+
+Test Case 2:
+GET /posts?id=9999
+
+Observation:
+- Returned status 200 OK.
+- Response body: [] (empty array).
 
 Conclusion:
-Headers provide metadata that instruct the server how to interpret request data.
+Path parameters return 404 when the resource does not exist.
+Query parameters return an empty array when no matching results are found.
+
+QA Implication:
+Incorrect handling of these cases may cause frontend errors or misleading success responses.
+
+---
+
+## Header Analysis
+
+Test Scenario:
+POST request sent without Content-Type header.
+
+Observation:
+- Server still processed the request successfully.
+- No 415 error was returned.
+
+Conclusion:
+The API is permissive regarding Content-Type validation.
+In stricter production systems, incorrect Content-Type may result in 415 Unsupported Media Type.
 
 ---
 
@@ -66,9 +92,34 @@ Request body carries structured data for resource creation or update.
 
 ---
 
+## Response Structure Difference
+
+Path Parameter Response:
+- JSON object
+
+Query Parameter Response:
+- JSON array
+
+Risk Consideration:
+If frontend expects an object but receives an array (or vice versa), it may cause runtime errors or incorrect data rendering.
+
+---
+
 ## Key Differences Identified
 
 - Path parameters identify a specific resource.
 - Query parameters filter resources.
 - Headers define request metadata.
 - Body contains structured payload.
+
+---
+
+## QA Relevance
+
+Understanding request anatomy is critical for:
+
+- Detecting inconsistent API behavior.
+- Identifying incorrect response structures.
+- Validating error handling logic.
+- Preventing frontend integration issues.
+- Ensuring contract stability between client and server.
