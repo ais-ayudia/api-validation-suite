@@ -1,1 +1,125 @@
+# Environment & Variable Strategy
 
+## Objective
+To understand how environment variables reduce hardcoded values and improve flexibility in API testing workflows.
+
+---
+
+## Environment Concept
+
+In API testing, different environments often exist, such as:
+
+- Development
+- Staging
+- Production
+
+Each environment may have a different base URL.  
+Using variables allows testers to switch environments without modifying every request manually.
+
+Example base URLs:
+
+```
+http://dev.api.com
+http://staging.api.com
+http://api.com
+```
+
+Instead of hardcoding these URLs, a variable can be used.
+
+---
+
+## Base URL Variable
+
+Example variable definition:
+
+| Variable | Value |
+|--------|--------|
+| base_url | http://47.250.161.65:8080 |
+
+API request can then be written as:
+
+```
+{{base_url}}/products
+```
+
+This improves maintainability because the base URL can be changed in a single location.
+
+---
+
+## Benefits of Using Variables
+
+- Eliminates hardcoded URLs
+- Simplifies environment switching
+- Reduces manual updates across multiple requests
+- Improves consistency in API testing workflows
+
+---
+
+## Example Usage
+
+Instead of writing:
+
+```
+http://47.250.161.65:8080/products
+```
+
+Use:
+
+```
+{{base_url}}/products
+```
+
+If the API server changes, only the variable value needs to be updated.
+
+---
+
+## Dynamic Variables from Response
+
+Variables can also be populated dynamically using response data.
+
+Example response:
+
+```json
+{
+  "id": 45,
+  "name": "Ais"
+}
+```
+
+Postman test script example:
+
+```javascript
+let jsonData = pm.response.json();
+pm.environment.set("user_id", jsonData.id);
+```
+
+This script extracts the `id` value from the response and stores it as an environment variable.
+
+---
+
+## Example Request Chaining
+
+After storing the variable:
+
+```
+{{user_id}} = 45
+```
+
+Subsequent requests can use it:
+
+```
+GET {{base_url}}/users/{{user_id}}
+```
+
+This enables request chaining and more realistic API testing flows.
+
+---
+
+## QA Relevance
+
+Environment and variable strategies are essential for:
+
+- Testing APIs across multiple environments
+- Avoiding hardcoded configuration
+- Supporting automated test workflows
+- Enabling request chaining during functional testing
