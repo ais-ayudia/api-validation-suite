@@ -1,1 +1,302 @@
+# Assertion Basics in Postman
 
+## Overview
+
+Assertions in Postman are used to validate whether an API response matches the expected result.
+
+Without assertions, a request only confirms that the server responds.  
+With assertions, testing becomes verifiable, repeatable, and measurable.
+
+Core purpose of assertions:
+
+- verify response correctness
+- validate response structure
+- detect functional defects early
+- enforce expected API behavior
+
+---
+
+## Basic Assertion Types
+
+### 1. Status Code Validation
+
+Status code is the first technical indicator that an endpoint behaves as expected.
+
+```javascript
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+```
+
+Typical status code expectations:
+
+- `200` → successful request  
+- `201` → resource created  
+- `400` → bad request  
+- `401` → unauthorized  
+- `404` → resource not found  
+
+---
+
+### 2. JSON Field Validation
+
+Response body must contain required fields according to endpoint behavior.
+
+Example response:
+
+```json
+{
+  "id": 3,
+  "name": "John",
+  "email": "john@mail.com"
+}
+```
+
+Field existence validation:
+
+```javascript
+let jsonData = pm.response.json();
+
+pm.test("Name field exists", function () {
+    pm.expect(jsonData.name).to.exist;
+});
+```
+
+---
+
+### 3. Data Type Validation
+
+Type validation prevents silent contract mismatch.
+
+```javascript
+pm.test("ID is a number", function () {
+    pm.expect(jsonData.id).to.be.a("number");
+});
+```
+
+---
+
+### 4. Exact Value Validation
+
+Used only when value must remain fixed.
+
+```javascript
+pm.test("Email is correct", function () {
+    pm.expect(jsonData.email).to.eql("john@mail.com");
+});
+```
+
+Avoid exact-value assertions for dynamic fields such as:
+
+- token
+- timestamp
+- generated id
+
+---
+
+### 5. Response Time Validation
+
+Performance is also part of functional quality.
+
+```javascript
+pm.test("Response time less than 1000ms", function () {
+    pm.expect(pm.response.responseTime).to.be.below(1000);
+});
+```
+
+Slow response may indicate backend inefficiency even when response content is correct.
+
+---
+
+## Combined Basic Assertion Example
+
+```javascript
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+
+let jsonData = pm.response.json();
+
+pm.test("Name field exists", function () {
+    pm.expect(jsonData.name).to.exist;
+});
+
+pm.test("Response time less than 1000ms", function () {
+    pm.expect(pm.response.responseTime).to.be.below(1000);
+});
+```
+
+---
+
+## Deterministic Test
+
+A deterministic test produces the same result every time under the same conditions.
+
+### Deterministic example
+
+```javascript
+pm.expect(pm.response.code).to.eql(200);
+```
+
+### Non-deterministic example
+
+```javascript
+pm.expect(jsonData.timestamp).to.eql("2026-03-11T10:00:00");
+```
+
+This fails because timestamp changes every request.
+
+A good assertion must be:
+
+- predictable  
+- repeatable  
+- independent from random output  
+
+---
+
+## How to Decide Which Assertion to Use
+
+Assertions should be selected based on endpoint responsibility.
+
+---
+
+### Protocol Level
+
+Checks technical response properties.
+
+Typical assertions:
+
+- status code
+- content type
+- response time
+
+Example:
+
+```javascript
+pm.test("Content-Type is JSON", function () {
+    pm.expect(pm.response.headers.get("Content-Type")).to.include("application/json");
+});
+```
+
+---
+
+### Data Level
+
+Checks structure and field presence.
+
+Example:
+
+```javascript
+pm.test("Token exists", function () {
+    pm.expect(jsonData.token).to.exist;
+});
+```
+
+---
+
+### Business Logic Level
+
+Checks whether business rules are respected.
+
+Example: failed login must return unauthorized status.
+
+```javascript
+pm.test("Status code is 401", function () {
+    pm.response.to.have.status(401);
+});
+```
+
+---
+
+## Assertion by HTTP Method
+
+### GET
+
+Focus:
+
+- status code
+- response structure
+- list length
+- filtering result
+
+---
+
+### POST
+
+Focus:
+
+- successful creation
+- generated resource id
+- returned payload validity
+
+---
+
+### PUT / PATCH
+
+Focus:
+
+- updated field value
+- unchanged unrelated fields
+
+---
+
+### DELETE
+
+Focus:
+
+- deletion success
+- resource absence after deletion
+
+---
+
+## Assertion in Different Test Types
+
+Assertions are applicable across all test categories.
+
+---
+
+### Positive Testing
+
+Valid input should return expected success response.
+
+---
+
+### Negative Testing
+
+Invalid input should return controlled failure response.
+
+---
+
+### Edge Testing
+
+Boundary input must still produce predictable behavior.
+
+---
+
+### Stress Testing
+
+Assertions can still be applied, mainly for:
+
+- response time threshold
+- failure rate
+- repeated consistency
+
+Example:
+
+```javascript
+pm.test("Response time under 2000ms", function () {
+    pm.expect(pm.response.responseTime).to.be.below(2000);
+});
+```
+
+For heavy stress testing, Postman is limited compared to dedicated load tools.
+
+---
+
+## Key Principle
+
+Before writing assertions, define:
+
+> What must always be true if this endpoint works correctly?
+
+That answer determines which assertions matter.
