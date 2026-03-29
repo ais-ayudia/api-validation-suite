@@ -32,9 +32,7 @@ A common negative case for resource-based endpoints is requesting data using an 
 
 Example request:
 
-```http
 GET /users/999999
-```
 
 Expected behavior:
 
@@ -44,21 +42,17 @@ Expected behavior:
 
 Example assertion:
 
-```javascript
 pm.test("Status code is 404", function () {
     pm.response.to.have.status(404);
 });
-```
 
 Optional response validation:
 
-```javascript
 let jsonData = pm.response.json();
 
 pm.test("Error message exists", function () {
     pm.expect(jsonData.message).to.exist;
 });
-```
 
 ---
 
@@ -70,9 +64,7 @@ Example:
 
 If endpoint accepts `GET`, test with `POST`.
 
-```http
 POST /users/1
-```
 
 Expected behavior:
 
@@ -81,11 +73,9 @@ Expected behavior:
 
 Assertion example:
 
-```javascript
 pm.test("Status code indicates method rejection", function () {
     pm.expect(pm.response.code).to.be.oneOf([405, 404]);
 });
-```
 
 Why `404` may also appear:
 
@@ -101,12 +91,10 @@ Invalid body testing checks whether validation rules are enforced.
 
 Example invalid JSON:
 
-```json
 {
   "email": "",
   "password": 123
 }
-```
 
 Possible issues being tested:
 
@@ -122,21 +110,17 @@ Expected behavior:
 
 Assertion example:
 
-```javascript
 pm.test("Status code indicates validation failure", function () {
     pm.expect(pm.response.code).to.be.oneOf([400, 422]);
 });
-```
 
 Response validation:
 
-```javascript
 let jsonData = pm.response.json();
 
 pm.test("Validation message exists", function () {
     pm.expect(jsonData.message).to.exist;
 });
-```
 
 ---
 
@@ -169,19 +153,15 @@ A mature API should fail systematically, not randomly.
 
 Example:
 
-```json
 {
   "error": "Not found"
 }
-```
 
 vs
 
-```json
 {
   "message": "Resource not found"
 }
-```
 
 Different formats increase automation complexity.
 
