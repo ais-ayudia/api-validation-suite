@@ -1,1 +1,194 @@
+# Day 5 - Negative Testing in Postman
 
+## Overview
+
+Negative testing is used to verify how an API behaves when receiving invalid, unexpected, or incorrect input.
+The objective is not to prove that the API works, but to discover whether it fails in a controlled and consistent way.
+A stable API should not only succeed on valid requests, but also respond predictably on invalid ones.
+
+---
+
+## Why Negative Testing Matters
+
+Positive testing answers:
+
+> Does the endpoint work under normal conditions?
+
+Negative testing answers:
+
+> Does the endpoint fail correctly when conditions are wrong?
+
+This is critical because many defects appear only when inputs deviate from expected usage.
+
+A good QA mindset assumes:
+
+> valid cases are not enough.
+
+---
+
+## Test Scenario 1 - Missing ID
+
+A common negative case for resource-based endpoints is requesting data using an ID that does not exist.
+
+Example request:
+
+```http
+GET /users/999999
+```
+
+Expected behavior:
+
+- API returns `404 Not Found` or equivalent error response
+- response body explains resource absence
+- status code matches API design
+
+Example assertion:
+
+```javascript
+pm.test("Status code is 404", function () {
+    pm.response.to.have.status(404);
+});
+```
+
+Optional response validation:
+
+```javascript
+let jsonData = pm.response.json();
+
+pm.test("Error message exists", function () {
+    pm.expect(jsonData.message).to.exist;
+});
+```
+
+---
+
+## Test Scenario 2 - Wrong HTTP Method
+
+Each endpoint should reject unsupported methods.
+
+Example:
+
+If endpoint accepts `GET`, test with `POST`.
+
+```http
+POST /users/1
+```
+
+Expected behavior:
+
+- API returns `405 Method Not Allowed` or proper rejection
+- unsupported action is clearly handled
+
+Assertion example:
+
+```javascript
+pm.test("Status code indicates method rejection", function () {
+    pm.expect(pm.response.code).to.be.oneOf([405, 404]);
+});
+```
+
+Why `404` may also appear:
+
+Some systems hide unsupported methods by returning route-not-found.
+
+This still needs documentation.
+
+---
+
+## Test Scenario 3 - Invalid Request Body
+
+Invalid body testing checks whether validation rules are enforced.
+
+Example invalid JSON:
+
+```json
+{
+  "email": "",
+  "password": 123
+}
+```
+
+Possible issues being tested:
+
+- empty required field
+- wrong data type
+- missing required field
+
+Expected behavior:
+
+- API rejects invalid payload
+- validation error is explicit
+- no unexpected server crash
+
+Assertion example:
+
+```javascript
+pm.test("Status code indicates validation failure", function () {
+    pm.expect(pm.response.code).to.be.oneOf([400, 422]);
+});
+```
+
+Response validation:
+
+```javascript
+let jsonData = pm.response.json();
+
+pm.test("Validation message exists", function () {
+    pm.expect(jsonData.message).to.exist;
+});
+```
+
+---
+
+## API Consistency Check
+
+Negative testing is also used to evaluate consistency.
+
+Questions to observe:
+
+- Does every invalid request return structured error responses?
+- Are status codes consistent across endpoints?
+- Is error messaging predictable?
+
+Example inconsistency:
+
+- missing ID returns `404`
+- invalid body returns `500`
+
+This indicates weak backend handling.
+
+A mature API should fail systematically, not randomly.
+
+---
+
+## Common Signs of Inconsistent API Behavior
+
+- same type of error returns different status codes
+- message format changes across endpoints
+- invalid request sometimes triggers internal server error
+
+Example:
+
+```json
+{
+  "error": "Not found"
+}
+```
+
+vs
+
+```json
+{
+  "message": "Resource not found"
+}
+```
+
+Different formats increase automation complexity.
+
+---
+
+## Key Principle
+
+A reliable API is not judged only by successful responses.
+It is judged by how cleanly it handles failure.
+QA that only checks happy paths usually misses the defects users eventually find.
