@@ -42,16 +42,23 @@ Expected behavior:
 
 Example assertion:
 
-pm.test("Status code is 404", function () {
-    pm.response.to.have.status(404);
+pm.test("Status code should be 400", () => {
+    pm.response.to.have.status(400);
 });
 
-Optional response validation:
+pm.test("Response contains error structure", () => {
+    const json = pm.response.json();
+    pm.expect(json).to.have.property("error");
+    pm.expect(json.details || json.error).to.exist;
+});
 
-let jsonData = pm.response.json();
+pm.test("Error message should not be empty", () => {
+    const json = pm.response.json();
+    const text = JSON.stringify(json).toLowerCase();
 
-pm.test("Error message exists", function () {
-    pm.expect(jsonData.message).to.exist;
+    if (text.includes("validasi gagal")) {
+        pm.expect(json.details.length).to.be.at.least(1);
+    }
 });
 
 ---
